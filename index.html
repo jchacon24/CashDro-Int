@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
     <title>Punto de Venta</title>
     <link rel="stylesheet" href="assets/css/styles.css">
-    <script src="assets/js/scripts.js" defer></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -80,13 +81,13 @@
         let cart = [];
         let total = 0;
         let operationId = null;
-
+    
         function addToCart(product, price) {
             cart.push({ product, price });
             total += price;
             updateCart();
         }
-
+    
         function updateCart() {
             const cartItems = document.getElementById('cart-items');
             cartItems.innerHTML = '';
@@ -98,39 +99,43 @@
             });
             document.getElementById('cart-total').innerText = total.toFixed(2);
         }
-
+    
         async function startOperation() {
-            try {
-                const url = `https://190.145.93.236/Cashdro3WS/index3.php?operation=startOperation&name=admin&password=1&type=4&posid=ds&parameters={"amount":"${total.toFixed(2)}"}&startnow=true&posuser=Jose`;
-                console.log('URL de inicio de operación:', url);
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log('Resultado de inicio de operación:', result);
-                
-                if (result.success) {
-                    operationId = result.operationId; // Asume que la respuesta contiene el operationId
-                    return true;
-                } else {
-                    throw new Error('Error al iniciar la operación: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Error al iniciar la operación:', error);
-                document.getElementById('transaccion-result').innerText = 'Error al iniciar la operación. Inténtelo nuevamente. ' + error.message;
-                return false;
-            }
+    try {
+        const amount = Math.round(total); 
+        const url = `https://190.145.93.236/Cashdro3WS/index3.php?operation=startOperation&name=admin&password=1&type=4&posid=ds&parameters={"amount":"${amount}"}&startnow=true&posuser=Jose`;
+        console.log('URL de inicio de operación:', url);
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
+        const result = await response.json();
+        console.log('Resultado de inicio de operación:', result);
+        
+        if (result.code === 0) { // Asume que el código 0 es éxito
+            operationId = result.response.operationId;
+            return true;
+        } else {
+            // Muestra todos los detalles de la respuesta si hay error
+            console.error('Detalles del error:', result);
+            const errorMsg = result.response.errorMessage || 'Error desconocido';
+            throw new Error(`Error al iniciar la operación: ${errorMsg}`);
+        }
+    } catch (error) {
+        console.error('Error al iniciar la operación:', error);
+        document.getElementById('transaccion-result').innerText = `Error al iniciar la operación. Detalles: ${error.message}`;
+        return false;
+    }
+}
 
         async function acknowledgeOperation() {
             if (!operationId) {
                 document.getElementById('transaccion-result').innerText = 'No hay ninguna operación para confirmar.';
                 return;
             }
-
+    
             try {
                 const url = `https://190.145.93.236/Cashdro3WS/index3.php?operation=acknowledgeOperationId&name=admin&password=1&operationId=${operationId}`;
                 console.log('URL de confirmación de operación:', url);
@@ -139,31 +144,35 @@
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-
+    
                 const result = await response.json();
                 console.log('Resultado de confirmación de operación:', result);
                 
-                if (result.success) {
-                    document.getElementById('transaccion-result').innerText = `Transacción confirmada: ${result.message}`;
+                if (result.code === 0) { // Asume que la respuesta exitosa tiene un código 0
+                    document.getElementById('transaccion-result').innerText = `Transacción confirmada: ${result.response.message}`;
                     cart = [];
                     total = 0;
                     updateCart();
                     operationId = null;
                 } else {
-                    throw new Error('Error al confirmar la operación: ' + result.message);
+                    throw new Error(`Error al confirmar la operación: ${result.response.errorMessage}`);
                 }
             } catch (error) {
                 console.error('Error al confirmar la operación:', error);
-                document.getElementById('transaccion-result').innerText = 'Error al confirmar la operación. Inténtelo nuevamente. ' + error.message;
+                document.getElementById('transaccion-result').innerText = `Error al confirmar la operación. Detalles: ${error.message}`;
             }
         }
-
-        document.getElementById('venderBtn').addEventListener('click', async () => {
-            const started = await startOperation();
-            if (started) {
-                await acknowledgeOperation();
-            }
+    
+        // Asegúrate de que el código se ejecute solo cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('venderBtn').addEventListener('click', async () => {
+                const started = await startOperation();
+                if (started) {
+                    await acknowledgeOperation();
+                }
+            });
         });
     </script>
+    
 </body>
 </html>
