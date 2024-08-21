@@ -51,18 +51,14 @@
     <div class="container">
         <div class="products">
             <div>
-                <p><img src="./assets/images/american.jpg" alt=""></p>
+                <p><img src="./assets/images/american.jpg" alt="Americano"></p>
                 <p>Americano - $2000</p>
-                <button class="btn" onclick="addToCart('Americano', 2000)">
-                    Agregar producto
-                </button>
+                <button class="btn" onclick="addToCart('Americano', 2000)">Agregar producto</button>
             </div>
             <div>
-                <p><img src="./assets/images/american.jpg" alt=""></p>
+                <p><img src="./assets/images/american.jpg" alt="Americano Doble"></p>
                 <p>Americano Doble - $5000</p>
-                <button class="btn" onclick="addToCart('Americano Doble', 5000)">
-                    Agregar producto
-                </button>
+                <button class="btn" onclick="addToCart('Americano Doble', 5000)">Agregar producto</button>
             </div>
             <!-- Agrega más productos aquí -->
         </div>
@@ -101,35 +97,34 @@
         }
     
         async function startOperation() {
-    try {
-        const amount = Math.round(total); 
-        const url = `https://190.145.93.236/Cashdro3WS/index3.php?operation=startOperation&name=admin&password=1&type=4&posid=ds&parameters={"amount":"${amount}"}&startnow=true&posuser=Jose`;
-        console.log('URL de inicio de operación:', url);
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+            try {
+                const amount = Math.round(total); 
+                const url = `https://190.145.93.236/Cashdro3WS/index3.php?operation=startOperation&name=admin&password=1&type=4&posid=ds&parameters={"amount":"${amount}"}&startnow=true&posuser=Jose`;
+                console.log('URL de inicio de operación:', url);
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
 
-        const result = await response.json();
-        console.log('Resultado de inicio de operación:', result);
-        
-        if (result.code === 0) { // Asume que el código 0 es éxito
-            operationId = result.response.operationId;
-            return true;
-        } else {
-            // Muestra todos los detalles de la respuesta si hay error
-            console.error('Detalles del error:', result);
-            const errorMsg = result.response.errorMessage || 'Error desconocido';
-            throw new Error(`Error al iniciar la operación: ${errorMsg}`);
+                const result = await response.json();
+                console.log('Resultado de inicio de operación:', result);
+                
+                if (result.code === 0) { // Asume que el código 0 es éxito
+                    operationId = result.response.operation.operationId; // Accede a la operación anidada
+                    return true;
+                } else {
+                    console.error('Detalles del error:', result);
+                    const errorMsg = result.response.errorMessage || 'Error desconocido';
+                    throw new Error(`Error al iniciar la operación: ${errorMsg}`);
+                }
+            } catch (error) {
+                console.error('Error al iniciar la operación:', error);
+                document.getElementById('transaccion-result').innerText = `Error al iniciar la operación. Detalles: ${error.message}`;
+                return false;
+            }
         }
-    } catch (error) {
-        console.error('Error al iniciar la operación:', error);
-        document.getElementById('transaccion-result').innerText = `Error al iniciar la operación. Detalles: ${error.message}`;
-        return false;
-    }
-}
-
+    
         async function acknowledgeOperation() {
             if (!operationId) {
                 document.getElementById('transaccion-result').innerText = 'No hay ninguna operación para confirmar.';
@@ -163,7 +158,6 @@
             }
         }
     
-        // Asegúrate de que el código se ejecute solo cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('venderBtn').addEventListener('click', async () => {
                 const started = await startOperation();
@@ -176,3 +170,4 @@
     
 </body>
 </html>
+
