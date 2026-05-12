@@ -170,7 +170,7 @@
     if (method === 'Efectivo') {
         let amount = total.toFixed(0);
         amount = amount * 100;
-        const startOperationUrl = `https://192.168.1.204/Cashdro3WS/index3.php?operation=startOperation&name=admin&password=1&type=4&posid=terminal2&parameters={"amount":"${amount}"}&startnow=true&posuser=Jose`;
+        const startOperationUrl = `https://192.168.2.118/Cashdro3WS/index3.php?operation=startOperation&name=admin&password=1&type=4&posid=terminal2&parameters={"amount":"${amount}"}&startnow=true&posuser=Jose`;
         
         // Realizar la primera llamada a la API para iniciar la transacción
         fetch(startOperationUrl, {
@@ -194,7 +194,7 @@
             console.log('Operation ID:', operationId); // Para depuración
             
             // Realizar la segunda llamada a la API para ejecutar la transacción
-            const acknowledgeOperationUrl = `https://192.168.1.204/Cashdro3WS/index3.php?operation=acknowledgeOperationId&name=admin&password=1&operationId=${operationId}`;
+            const acknowledgeOperationUrl = `https://192.168.2.118/Cashdro3WS/index3.php?operation=acknowledgeOperationId&name=admin&password=1&operationId=${operationId}`;
             
             return fetch(acknowledgeOperationUrl, {
                 method: 'GET',
